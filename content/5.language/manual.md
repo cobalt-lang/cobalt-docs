@@ -1,6 +1,6 @@
-# Cobalt Programming Language
+# Cobalt
 
-> Based on Lua 5.4.3, this is based on the official Lua manual, but with some changes to the language.
+> Based on Lua 5.3, this is based on the official Lua and LJS manual, but with some changes to the language.
 
 1 – Introduction
 ================
