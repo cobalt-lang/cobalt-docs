@@ -441,7 +441,7 @@ The **return** statement is used to return values from a function or a chunk (wh
 
 	stat ::= **return** \[explist\] \[‘**;**’\]
 
-The **return** statement can only be written as the last statement of a block. If it is really necessary to **return** in the middle of a block, then an explicit inner block can be used, as in the idiom `do return end`, because now **return** is the last statement in its (inner) block.
+The **return** statement can only be written as the last statement of a block. If it is really necessary to **return** in the middle of a block, then an explicit inner block can be used, as in the idiom `do { return }`, because now **return** is the last statement in its (inner) block.
 
 ### 3.3.5 – For Statement
 
@@ -3848,9 +3848,9 @@ A path is a string containing a sequence of _templates_ separated by semicolons.
 
 For instance, if the path is the string
 
-     "./?.Cobalt;./?.lc;/usr/local/?/init.Cobalt"
+     "./?.cobalt;./?.lc;/usr/local/?/init.cobalt"
 
-the search for the name `foo.a` will try to open the files `./foo/a.Cobalt`, `./foo/a.lc`, and `/usr/local/foo/a/init.Cobalt`, in that order.
+the search for the name `foo.a` will try to open the files `./foo/a.cobalt`, `./foo/a.lc`, and `/usr/local/foo/a/init.cobalt`, in that order.
 
 Returns the resulting name of the first file that it can open in read mode (after closing the file), or **null** plus an error message if none succeeds. (This error message lists all file names it tried to open.)
 
@@ -4858,12 +4858,12 @@ will first set `a` to 1, then print the value of `a`, and finally run the file `
 
 Before running any code, `cobalt` collects all command-line arguments in a global table called `arg`. The script name goes to index 0, the first argument after the script name goes to index 1, and so on. Any arguments before the script name (that is, the interpreter name plus its options) go to negative indices. For instance, in the call
 
-     $ Cobalt -la b.Cobalt t1 t2
+     $ Cobalt -la b.cobalt t1 t2
 
 the table is like this:
 
      arg = { \[-2\] = "Cobalt", \[-1\] = "-la",
-             \[0\] = "b.Cobalt",
+             \[0\] = "b.cobalt",
              \[1\] = "t1", \[2\] = "t2" }
 
 If there is no script in the call, the interpreter name goes to index 0, followed by the other arguments. For instance, the call
