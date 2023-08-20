@@ -37,7 +37,8 @@ Cobalt can call (and manipulate) functions written in Cobalt and functions writt
 
 The type _userdata_ is provided to allow arbitrary C data to be stored in Cobalt variables. A userdata value represents a block of raw memory. There are two kinds of userdata: _full userdata_, which is an object with a block of memory managed by Cobalt, and _light userdata_, which is simply a C pointer value. Userdata has no predefined operations in Cobalt, except assignment and identity test. By using _metatables_, the programmer can define operations for full userdata values (see [§2.4](#2.4)). Userdata values cannot be created or modified in Cobalt, only through the C API. This guarantees the integrity of data owned by the host program.
 
-The type _thread_ represents independent threads of execution and it is used to implement coroutines (see [§2.6](#2.6)). Cobalt threads are not related to operating-system threads. Cobalt supports coroutines on all systems, even those that do not support threads natively.
+The type _thread_ represents independent threads of execution and it is used to implement the threads library (see [§2.6](#2.6)). Cobalt threads are not related to operating-system threads. Cobalt supports threads library on all systems, even those that do not support threads natively. If you are looking for real threading try using
+`import("async")` and you can provide it a string to operate on another physical thread on your CPU.
 
 The type _table_ implements associative arrays, that is, arrays that can have as indices not only numbers, but any Cobalt value except **null** and NaN. (_Not a Number_ is a special value used to represent undefined or unrepresentable numerical results, such as `0/0`.) Tables can be _heterogeneous_; that is, they can contain values of all types (except **null**). Any key with value **null** is not considered part of the table. Conversely, any key that is not part of a table has an associated value **null**.
 
@@ -178,41 +179,41 @@ Resurrected objects (that is, objects being finalized and objects accessible onl
 
 If a weak table is among the resurrected objects in a collection cycle, it may not be properly cleared until the next cycle.
 
-2.6 – Coroutines
+2.6 – Threads
 ----------------
 
-Cobalt supports coroutines, also called _collaborative multithreading_. A coroutine in Cobalt represents an independent thread of execution. Unlike threads in multithread systems, however, a coroutine only suspends its execution by explicitly calling a yield function.
+Cobalt supports threads, also called _collaborative multithreading_, this is not real threads on the CPU. A thread in Cobalt represents an independent thread of execution. Unlike threads in multithread systems, however, a thread only suspends its execution by explicitly calling a yield function.
 
-You create a coroutine by calling [`coroutine.create`](#pdf-coroutine.create). Its sole argument is a function that is the main function of the coroutine. The `create` function only creates a new coroutine and returns a handle to it (an object of type _thread_); it does not start the coroutine.
+You create a thread by calling [`thread.create`](#pdf-thread.create). Its sole argument is a function that is the main function of the thread. The `create` function only creates a new thread and returns a handle to it (an object of type _thread_); it does not start the thread.
 
-You execute a coroutine by calling [`coroutine.resume`](#pdf-coroutine.resume). When you first call [`coroutine.resume`](#pdf-coroutine.resume), passing as its first argument a thread returned by [`coroutine.create`](#pdf-coroutine.create), the coroutine starts its execution by calling its main function. Extra arguments passed to [`coroutine.resume`](#pdf-coroutine.resume) are passed as arguments to that function. After the coroutine starts running, it runs until it terminates or _yields_.
+You execute a thread by calling [`thread.resume`](#pdf-thread.resume). When you first call [`thread.resume`](#pdf-thread.resume), passing as its first argument a thread returned by [`thread.create`](#pdf-thread.create), the thread starts its execution by calling its main function. Extra arguments passed to [`thread.resume`](#pdf-thread.resume) are passed as arguments to that function. After the thread starts running, it runs until it terminates or _yields_.
 
-A coroutine can terminate its execution in two ways: normally, when its main function returns (explicitly or implicitly, after the last instruction); and abnormally, if there is an unprotected error. In case of normal termination, [`coroutine.resume`](#pdf-coroutine.resume) returns **true**, plus any values returned by the coroutine main function. In case of errors, [`coroutine.resume`](#pdf-coroutine.resume) returns **false** plus an error object.
+A thread can terminate its execution in two ways: normally, when its main function returns (explicitly or implicitly, after the last instruction); and abnormally, if there is an unprotected error. In case of normal termination, [`thread.resume`](#pdf-thread.resume) returns **true**, plus any values returned by the thread main function. In case of errors, [`thread.resume`](#pdf-thread.resume) returns **false** plus an error object.
 
-A coroutine yields by calling [`coroutine.yield`](#pdf-coroutine.yield). When a coroutine yields, the corresponding [`coroutine.resume`](#pdf-coroutine.resume) returns immediately, even if the yield happens inside nested function calls (that is, not in the main function, but in a function directly or indirectly called by the main function). In the case of a yield, [`coroutine.resume`](#pdf-coroutine.resume) also returns **true**, plus any values passed to [`coroutine.yield`](#pdf-coroutine.yield). The next time you resume the same coroutine, it continues its execution from the point where it yielded, with the call to [`coroutine.yield`](#pdf-coroutine.yield) returning any extra arguments passed to [`coroutine.resume`](#pdf-coroutine.resume).
+A thread yields by calling [`thread.yield`](#pdf-thread.yield). When a thread yields, the corresponding [`thread.resume`](#pdf-thread.resume) returns immediately, even if the yield happens inside nested function calls (that is, not in the main function, but in a function directly or indirectly called by the main function). In the case of a yield, [`thread.resume`](#pdf-thread.resume) also returns **true**, plus any values passed to [`thread.yield`](#pdf-thread.yield). The next time you resume the same thread, it continues its execution from the point where it yielded, with the call to [`thread.yield`](#pdf-thread.yield) returning any extra arguments passed to [`thread.resume`](#pdf-thread.resume).
 
-Like [`coroutine.create`](#pdf-coroutine.create), the [`coroutine.wrap`](#pdf-coroutine.wrap) function also creates a coroutine, but instead of returning the coroutine itself, it returns a function that, when called, resumes the coroutine. Any arguments passed to this function go as extra arguments to [`coroutine.resume`](#pdf-coroutine.resume). [`coroutine.wrap`](#pdf-coroutine.wrap) returns all the values returned by [`coroutine.resume`](#pdf-coroutine.resume), except the first one (the boolean error code). Unlike [`coroutine.resume`](#pdf-coroutine.resume), [`coroutine.wrap`](#pdf-coroutine.wrap) does not catch errors; any error is propagated to the caller.
+Like [`thread.create`](#pdf-thread.create), the [`thread.wrap`](#pdf-thread.wrap) function also creates a thread, but instead of returning the thread itself, it returns a function that, when called, resumes the thread. Any arguments passed to this function go as extra arguments to [`thread.resume`](#pdf-thread.resume). [`thread.wrap`](#pdf-thread.wrap) returns all the values returned by [`thread.resume`](#pdf-thread.resume), except the first one (the boolean error code). Unlike [`thread.resume`](#pdf-thread.resume), [`thread.wrap`](#pdf-thread.wrap) does not catch errors; any error is propagated to the caller.
 
-As an example of how coroutines work, consider the following code:
+As an example of how threads work, consider the following code:
 
      function foo (a) {
        print("foo", a);
-       return coroutine.yield(2\*a);
+       return thread.yield(2\*a);
      }
      
-     co = coroutine.create(function (a,b) {
+     co = thread.create(function (a,b) {
            print("co-body", a, b);
            local r = foo(a+1);
            print("co-body", r);
-           local r, s = coroutine.yield(a+b, a-b);
+           local r, s = thread.yield(a+b, a-b);
            print("co-body", r, s);
            return b, "end";
      });
      
-     print("main", coroutine.resume(co, 1, 10));
-     print("main", coroutine.resume(co, "r"));
-     print("main", coroutine.resume(co, "x", "y"));
-     print("main", coroutine.resume(co, "x", "y"));
+     print("main", thread.resume(co, 1, 10));
+     print("main", thread.resume(co, "r"));
+     print("main", thread.resume(co, "x", "y"));
+     print("main", thread.resume(co, "x", "y"));
 
 When you run it, it produces the following output:
 
@@ -223,9 +224,9 @@ When you run it, it produces the following output:
      main    true    11      -9
      co-body x       y
      main    true    10      end
-     main    false   cannot resume dead coroutine
+     main    false   cannot resume dead thread
 
-You can also create and manipulate coroutines through the C API: see functions [`lua_newthread`](#lua_newthread), [`lua_resume`](#lua_resume), and [`lua_yield`](#lua_yield).
+You can also create and manipulate threads through the C API: see functions [`lua_newthread`](#lua_newthread), [`lua_resume`](#lua_resume), and [`lua_yield`](#lua_yield).
 
 3 – The Language
 ================
@@ -1003,7 +1004,7 @@ The panic function runs as if it were a message handler (see [§2.3](#2.3)); in 
 4.7 – Handling Yields in C
 --------------------------
 
-Internally, Lua uses the C `longjmp` facility to yield a coroutine. Therefore, if a C function `foo` calls an API function and this API function yields (directly or indirectly by calling another function that yields), Lua cannot return to `foo` any more, because the `longjmp` removes its frame from the C stack.
+Internally, Lua uses the C `longjmp` facility to yield a thread. Therefore, if a C function `foo` calls an API function and this API function yields (directly or indirectly by calling another function that yields), Lua cannot return to `foo` any more, because the `longjmp` removes its frame from the C stack.
 
 To avoid this kind of problem, Lua raises an error whenever it tries to yield across an API call, except for three functions: [`lua_yieldk`](#lua_yieldk), [`lua_callk`](#lua_callk), and [`lua_pcallk`](#lua_pcallk). All those functions receive a _continuation function_ (as a parameter named `k`) to continue execution after a yield.
 
@@ -1589,7 +1590,7 @@ Returns 1 if the value at the given index is a userdata (either full or light), 
 
 int lua\_isyieldable (lua\_State \*L);
 
-Returns 1 if the given coroutine can yield, and 0 otherwise.
+Returns 1 if the given thread can yield, and 0 otherwise.
 
 * * *
 
@@ -2098,15 +2099,15 @@ Moves the top element into the given valid index without shifting any element (t
 
 int lua\_resume (lua\_State \*L, lua\_State \*from, int nargs);
 
-Starts and resumes a coroutine in the given thread `L`.
+Starts and resumes a thread in the given thread `L`.
 
-To start a coroutine, you push onto the thread stack the main function plus any arguments; then you call [`lua_resume`](#lua_resume), with `nargs` being the number of arguments. This call returns when the coroutine suspends or finishes its execution. When it returns, the stack contains all values passed to [`lua_yield`](#lua_yield), or all values returned by the body function. [`lua_resume`](#lua_resume) returns [`LUA_YIELD`](#pdf-LUA_YIELD) if the coroutine yields, [`LUA_OK`](#pdf-LUA_OK) if the coroutine finishes its execution without errors, or an error code in case of errors (see [`lua_pcall`](#lua_pcall)).
+To start a thread, you push onto the thread stack the main function plus any arguments; then you call [`lua_resume`](#lua_resume), with `nargs` being the number of arguments. This call returns when the thread suspends or finishes its execution. When it returns, the stack contains all values passed to [`lua_yield`](#lua_yield), or all values returned by the body function. [`lua_resume`](#lua_resume) returns [`LUA_YIELD`](#pdf-LUA_YIELD) if the thread yields, [`LUA_OK`](#pdf-LUA_OK) if the thread finishes its execution without errors, or an error code in case of errors (see [`lua_pcall`](#lua_pcall)).
 
 In case of errors, the stack is not unwound, so you can use the debug API over it. The error object is on the top of the stack.
 
-To resume a coroutine, you remove any results from the last [`lua_yield`](#lua_yield), put on its stack only the values to be passed as results from `yield`, and then call [`lua_resume`](#lua_resume).
+To resume a thread, you remove any results from the last [`lua_yield`](#lua_yield), put on its stack only the values to be passed as results from `yield`, and then call [`lua_resume`](#lua_resume).
 
-The parameter `from` represents the coroutine that is resuming `L`. If there is no such coroutine, this parameter can be `NULL`.
+The parameter `from` represents the thread that is resuming `L`. If there is no such thread, this parameter can be `NULL`.
 
 * * *
 
@@ -2226,7 +2227,7 @@ Returns the status of the thread `L`.
 
 The status can be 0 ([`LUA_OK`](#pdf-LUA_OK)) for a normal thread, an error code if the thread finished the execution of a [`lua_resume`](#lua_resume) with an error, or `LUA_YIELD` if the thread is suspended.
 
-You can only call functions in threads with status [`LUA_OK`](#pdf-LUA_OK). You can resume threads with status [`LUA_OK`](#pdf-LUA_OK) (to start a new coroutine) or [`LUA_YIELD`](#pdf-LUA_YIELD) (to resume a coroutine).
+You can only call functions in threads with status [`LUA_OK`](#pdf-LUA_OK). You can resume threads with status [`LUA_OK`](#pdf-LUA_OK) (to start a new thread) or [`LUA_YIELD`](#pdf-LUA_YIELD) (to resume a thread).
 
 * * *
 
@@ -2452,13 +2453,13 @@ int lua\_yieldk (lua\_State \*L,
                 lua\_KContext ctx,
                 lua\_KFunction k);
 
-Yields a coroutine (thread).
+Yields a thread (thread).
 
-When a C function calls [`lua_yieldk`](#lua_yieldk), the running coroutine suspends its execution, and the call to [`lua_resume`](#lua_resume) that started this coroutine returns. The parameter `nresults` is the number of values from the stack that will be passed as results to [`lua_resume`](#lua_resume).
+When a C function calls [`lua_yieldk`](#lua_yieldk), the running thread suspends its execution, and the call to [`lua_resume`](#lua_resume) that started this thread returns. The parameter `nresults` is the number of values from the stack that will be passed as results to [`lua_resume`](#lua_resume).
 
-When the coroutine is resumed again, Lua calls the given continuation function `k` to continue the execution of the C function that yielded (see [§4.7](#4.7)). This continuation function receives the same stack from the previous function, with the `n` results removed and replaced by the arguments passed to [`lua_resume`](#lua_resume). Moreover, the continuation function receives the value `ctx` that was passed to [`lua_yieldk`](#lua_yieldk).
+When the thread is resumed again, Lua calls the given continuation function `k` to continue the execution of the C function that yielded (see [§4.7](#4.7)). This continuation function receives the same stack from the previous function, with the `n` results removed and replaced by the arguments passed to [`lua_resume`](#lua_resume). Moreover, the continuation function receives the value `ctx` that was passed to [`lua_yieldk`](#lua_yieldk).
 
-Usually, this function does not return; when the coroutine eventually resumes, it continues executing the continuation function. However, there is one special case, which is when this function is called from inside a line or a count hook (see [§4.9](#4.9)). In that case, `lua_yieldk` should be called with no continuation (probably in the form of [`lua_yield`](#lua_yield)) and no results, and the hook should return immediately after the call. Lua will yield and, when the coroutine resumes again, it will continue the normal execution of the (Lua) function that triggered the hook.
+Usually, this function does not return; when the thread eventually resumes, it continues executing the continuation function. However, there is one special case, which is when this function is called from inside a line or a count hook (see [§4.9](#4.9)). In that case, `lua_yieldk` should be called with no continuation (probably in the form of [`lua_yield`](#lua_yield)) and no results, and the hook should return immediately after the call. Lua will yield and, when the thread resumes again, it will continue the normal execution of the (Lua) function that triggered the hook.
 
 This function can raise an error if it is called from a thread with a pending C call with no continuation function, or it is called from a thread that is not running inside a resume (e.g., the main thread).
 
@@ -3476,7 +3477,7 @@ The standard Lua libraries provide useful functions that are implemented directl
 All libraries are implemented through the official C API and are provided as separate C modules. Currently, Lua has the following standard libraries:
 
 *   basic library ([§6.1](#6.1));
-*   coroutine library ([§6.2](#6.2));
+*   thread library ([§6.2](#6.2));
 *   package library ([§6.3](#6.3));
 *   string manipulation ([§6.4](#6.4));
 *   basic UTF-8 support ([§6.5](#6.5));
@@ -3488,7 +3489,7 @@ All libraries are implemented through the official C API and are provided as se
 
 Except for the basic and the package libraries, each library provides all its functions as fields of a global table or as methods of its objects.
 
-To have access to these libraries, the C host program should call the [`luaL_openlibs`](#luaL_openlibs) function, which opens all standard libraries. Alternatively, the host program can open them individually by using [`luaL_requiref`](#luaL_requiref) to call `luaopen_base` (for the basic library), `luaopen_package` (for the package library), `luaopen_coroutine` (for the coroutine library), `luaopen_string` (for the string library), `luaopen_utf8` (for the UTF8 library), `luaopen_table` (for the table library), `luaopen_math` (for the mathematical library), `luaopen_io` (for the I/O library), `luaopen_os` (for the operating system library), and `luaopen_debug` (for the debug library). These functions are declared in `lualib.h`.
+To have access to these libraries, the C host program should call the [`luaL_openlibs`](#luaL_openlibs) function, which opens all standard libraries. Alternatively, the host program can open them individually by using [`luaL_requiref`](#luaL_requiref) to call `luaopen_base` (for the basic library), `luaopen_package` (for the package library), `luaopen_thread` (for the thread library), `luaopen_string` (for the string library), `luaopen_utf8` (for the UTF8 library), `luaopen_table` (for the table library), `luaopen_math` (for the mathematical library), `luaopen_io` (for the I/O library), `luaopen_os` (for the operating system library), and `luaopen_debug` (for the debug library). These functions are declared in `lualib.h`.
 
 6.1 – Basic Functions
 ---------------------
@@ -3688,56 +3689,56 @@ A global variable (not a function) that holds a string containing the running Lu
 
 This function is similar to [`pcall`](#pdf-pcall), except that it sets a new message handler `msgh`.
 
-6.2 – Coroutine Manipulation
+6.2 – Thread Manipulation
 ----------------------------
 
-This library comprises the operations to manipulate coroutines, which come inside the table `coroutine`. See [§2.6](#2.6) for a general description of coroutines.
+This library comprises the operations to manipulate threads, which come inside the table `thread`. See [§2.6](#2.6) for a general description of threads.
 
 * * *
 
-### `coroutine.create (f)`
+### `thread.create (f)`
 
-Creates a new coroutine, with body `f`. `f` must be a function. Returns this new coroutine, an object with type `"thread"`.
-
-* * *
-
-### `coroutine.isyieldable ()`
-
-Returns true when the running coroutine can yield.
-
-A running coroutine is yieldable if it is not the main thread and it is not inside a non-yieldable C function.
+Creates a new thread, with body `f`. `f` must be a function. Returns this new thread, an object with type `"thread"`.
 
 * * *
 
-### `coroutine.resume (co [, val1, ···])`
+### `thread.isyieldable ()`
 
-Starts or continues the execution of coroutine `co`. The first time you resume a coroutine, it starts running its body. The values `val1`, ... are passed as the arguments to the body function. If the coroutine has yielded, `resume` restarts it; the values `val1`, ... are passed as the results from the yield.
+Returns true when the running thread can yield.
 
-If the coroutine runs without any errors, `resume` returns **true** plus any values passed to `yield` (when the coroutine yields) or any values returned by the body function (when the coroutine terminates). If there is any error, `resume` returns **false** plus the error message.
-
-* * *
-
-### `coroutine.running ()`
-
-Returns the running coroutine plus a boolean, true when the running coroutine is the main one.
+A running thread is yieldable if it is not the main thread and it is not inside a non-yieldable C function.
 
 * * *
 
-### `coroutine.status (co)`
+### `thread.resume (co [, val1, ···])`
 
-Returns the status of coroutine `co`, as a string: `"running"`, if the coroutine is running (that is, it called `status`); `"suspended"`, if the coroutine is suspended in a call to `yield`, or if it has not started running yet; `"normal"` if the coroutine is active but not running (that is, it has resumed another coroutine); and `"dead"` if the coroutine has finished its body function, or if it has stopped with an error.
+Starts or continues the execution of thread `co`. The first time you resume a thread, it starts running its body. The values `val1`, ... are passed as the arguments to the body function. If the thread has yielded, `resume` restarts it; the values `val1`, ... are passed as the results from the yield.
 
-* * *
-
-### `coroutine.wrap (f)`
-
-Creates a new coroutine, with body `f`. `f` must be a function. Returns a function that resumes the coroutine each time it is called. Any arguments passed to the function behave as the extra arguments to `resume`. Returns the same values returned by `resume`, except the first boolean. In case of error, propagates the error.
+If the thread runs without any errors, `resume` returns **true** plus any values passed to `yield` (when the thread yields) or any values returned by the body function (when the thread terminates). If there is any error, `resume` returns **false** plus the error message.
 
 * * *
 
-### `coroutine.yield (···)`
+### `thread.running ()`
 
-Suspends the execution of the calling coroutine. Any arguments to `yield` are passed as extra results to `resume`.
+Returns the running thread plus a boolean, true when the running thread is the main one.
+
+* * *
+
+### `thread.status (co)`
+
+Returns the status of thread `co`, as a string: `"running"`, if the thread is running (that is, it called `status`); `"suspended"`, if the thread is suspended in a call to `yield`, or if it has not started running yet; `"normal"` if the thread is active but not running (that is, it has resumed another thread); and `"dead"` if the thread has finished its body function, or if it has stopped with an error.
+
+* * *
+
+### `thread.wrap (f)`
+
+Creates a new thread, with body `f`. `f` must be a function. Returns a function that resumes the thread each time it is called. Any arguments passed to the function behave as the extra arguments to `resume`. Returns the same values returned by `resume`, except the first boolean. In case of error, propagates the error.
+
+* * *
+
+### `thread.yield (···)`
+
+Suspends the execution of the calling thread. Any arguments to `yield` are passed as extra results to `resume`.
 
 6.3 – Modules
 -------------
