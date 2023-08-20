@@ -86,9 +86,9 @@ Every value in Cobalt can have a _metatable_. This _metatable_ is an ordinary Co
 The key for each event in a metatable is a string with the event name prefixed by two underscores; the corresponding values are called _metamethods_. In the previous example, the key is "`__add`" and the metamethod is the function that performs the addition. Unless stated otherwise, metamethods should be function values.
 
 You can query the metatable of any value using the [`getmetatable`](#pdf-getmetatable) function. Cobalt queries metamethods in metatables using a raw access (see [`rawget`](#pdf-rawget)). So, to retrieve the metamethod for event `ev` in object `o`, Lua does the equivalent to the following code:
-
-     rawget(getmetatable(_o_) or {}, "\_\__ev_")
-
+```lua
+     rawget(getmetatable(_o_) or {}, "___ev_")
+```
 You can replace the metatable of tables using the [`setmetatable`](#pdf-setmetatable) function. You cannot change the metatable of other types from Cobalt code (except by using the debug library ([§6.10](#6.10))); you should use the C API for that.
 
 Tables and full userdata have individual metatables (although multiple tables and userdata can share their metatables). Values of all other types share one single metatable per type; that is, there is one single metatable for all numbers, one for all strings, etc. By default, a value has no metatable, but the string library sets a metatable for the string type (see [§6.4](#6.4)).
@@ -195,7 +195,7 @@ A thread yields by calling [`thread.yield`](#pdf-thread.yield). When a thread yi
 Like [`thread.create`](#pdf-thread.create), the [`thread.wrap`](#pdf-thread.wrap) function also creates a thread, but instead of returning the thread itself, it returns a function that, when called, resumes the thread. Any arguments passed to this function go as extra arguments to [`thread.resume`](#pdf-thread.resume). [`thread.wrap`](#pdf-thread.wrap) returns all the values returned by [`thread.resume`](#pdf-thread.resume), except the first one (the boolean error code). Unlike [`thread.resume`](#pdf-thread.resume), [`thread.wrap`](#pdf-thread.wrap) does not catch errors; any error is propagated to the caller.
 
 As an example of how threads work, consider the following code:
-
+```js
      function foo (a) {
        print("foo", a);
        return thread.yield(2\*a);
@@ -214,9 +214,9 @@ As an example of how threads work, consider the following code:
      print("main", thread.resume(co, "r"));
      print("main", thread.resume(co, "x", "y"));
      print("main", thread.resume(co, "x", "y"));
-
+```
 When you run it, it produces the following output:
-
+```bash
      co-body 1       10
      foo     2
      main    true    4
@@ -225,7 +225,7 @@ When you run it, it produces the following output:
      co-body x       y
      main    true    10      end
      main    false   cannot resume dead thread
-
+```
 You can also create and manipulate threads through the C API: see functions [`lua_newthread`](#lua_newthread), [`lua_resume`](#lua_resume), and [`lua_yield`](#lua_yield).
 
 3 – The Language
@@ -270,7 +270,7 @@ The UTF-8 encoding of a Unicode character can be inserted in a literal string wi
 Literal strings can also be defined using a long format enclosed by _long brackets_. We define an _opening long bracket of level _n__ as an opening square bracket followed by _n_ equal signs followed by another opening square bracket. _The minimum level of 1 is mandatory (to disambiguate from array declarations)_. So, an opening long bracket of level 1 is written as `[=[`, an opening long bracket of level 2 is written as `[==[`, and so on. A _closing long bracket_ is defined similarly; for instance, a closing long bracket of level 4 is written as `]====]`. A _long literal_ starts with an opening long bracket of any level bigger or equal 1 and ends at the first closing long bracket of the same level. It can contain any text except a closing bracket of the same level. Literals in this bracketed form can run for several lines, do not interpret any escape sequences, and ignore long brackets of any other level. Any kind of end-of-line sequence (carriage return, newline, carriage return followed by newline, or newline followed by carriage return) is converted to a simple newline.
 
 For convenience, when the opening long bracket is immediately followed by a newline, the newline is not included in the string. As an example, in a system using ASCII (in which '`a`' is coded as 97, newline is coded as 10, and '`1`' is coded as 49), the five literal strings below denote the same string:
-
+```lua
      a = 'alo\\n123"';
      a = "alo\\n123\\"";
      a = '\\97lo\\10\\04923"';
@@ -279,18 +279,18 @@ For convenience, when the opening long bracket is immediately followed by a newl
      a = \[==\[
      alo
      123"\]==\];
-
+```
 Any byte in a literal string not explicitly affected by the previous rules represents itself. However, Cobalt opens files for parsing in text mode, and the system file functions may have problems with some control characters. So, it is safer to represent non-text data as a quoted literal with explicit escape sequences for the non-text characters.
 
 A _numeric constant_ (or _numeral_) can be written with an optional fractional part and an optional decimal exponent, marked by a letter '`e`' or '`E`'. Cobalt also accepts hexadecimal constants, which start with `0x` or `0X`. Hexadecimal constants also accept an optional fractional part plus an optional binary exponent, marked by a letter '`p`' or '`P`'. A numeric constant with a radix point or an exponent denotes a float; otherwise, if its value fits in an integer, it denotes an integer. Examples of valid integer constants are
-
+```lua
      3   345   0xff   0xBEBADA
-
+```
 Examples of valid float constants are
-
+```lua
      3.0     3.1416     314.16e-2     0.31416E1     34e1
      0x0.1E  0xA23p-4   0X1.921FB54442D18P+1
-
+```
 A _short comment_ starts with (`//`) anywhere outside a string and ends on the next new line. A _long comment_ starts with (`/*`) anywhere outside a string and ends when found a closing (`*/`). Long comments are frequently used to disable code temporarily.
 
 3.2 – Variables
@@ -453,25 +453,25 @@ The numerical **for** loop repeats a block of code while a control variable runs
 	stat ::= **for(** Name ‘**\=**’ exp ‘**,**’ exp \[‘**,**’ exp\] **) {** block **}**
 
 The _block_ is repeated for _name_ starting at the value of the first _exp_, until it passes the second _exp_ by steps of the third _exp_. More precisely, a **for** statement like
-
-     for( v = _e1_, _e2_, _e3_ ) { _block_ }
-
+```js
+     for( v = e1, e2, e3 ) { block }
+```
 is equivalent to the code:
-
+```js
      {
-       var _var\_name_, _limit_, _step_ = tonumber(_e1_), tonumber(_e2_), tonumber(_e3_);
-       if( ! (_var\_name_ && _limit_ && _step_) ) { error() }
-       _var\_name_ -= _step_;
+       var _var_name_, _limit_, _step_ = tonumber(_e1_), tonumber(_e2_), tonumber(_e3_);
+       if( ! (_var_name_ && _limit_ && _step_) ) { error() }
+       _var_name_ -= _step_;
        while( true ) {
-         _var\_name_ += _step_;
-         if( (_step_ >= 0 && _var\_name_ > _limit_) || (_step_ < 0 && _var\_name_ < _limit_) ) {
+         _var_name_ += _step_;
+         if( (_step_ >= 0 && _var_name_ > _limit_) || (_step_ < 0 && _var_name_ < _limit_) ) {
            break;
          }
-         var v = _var\_name_;
+         var v = _var_name_;
          _block_
        }
      }
-
+```
 Note the following:
 
 *   All three control expressions are evaluated only once, before the loop starts. They must all result in numbers.
@@ -486,21 +486,21 @@ The generic **for** statement works over functions, called _iterators_. On each 
 	namelist ::= Name {‘**,**’ Name}
 
 A **for** statement like
-
-     for( _var\_1_, ···, _var\_n_ in _explist_ ) { _block_ }
-
+```js
+     for( _var_1_, ···, _var_n_ in _explist_ ) { _block_ }
+```
 is equivalent to the code:
-
+```js
      {
        var _f_, _s_, _var_ = _explist_;
        while( true ) {
-         local _var\_1_, ···, _var\_n_ = _f_(_s_, _var_)
-         if( _var\_1_ == null ) { break }
-         _var_ = _var\_1_;
+         local _var_1_, ···, _var_n_ = _f_(_s_, _var_)
+         if( _var_1_ == null ) { break }
+         _var_ = _var_1_;
          _block_
        }
      }
-
+```
 Note the following:
 
 *   `_explist_` is evaluated only once. Its results are an _iterator_ function, a _state_, and an initial value for the first _iterator variable_.
@@ -1013,31 +1013,31 @@ We need to set some terminology to explain continuations. We have a C function 
 Suppose the running thread yields while executing the callee function. After the thread resumes, it eventually will finish running the callee function. However, the callee function cannot return to the original function, because its frame in the C stack was destroyed by the yield. Instead, Lua calls a _continuation function_, which was given as an argument to the callee function. As the name implies, the continuation function should continue the task of the original function.
 
 As an illustration, consider the following function:
-
-     int original\_function (lua\_State \*L) {
+```c
+     int original_function (lua_State \*L) {
        ...     /\* code 1 \*/
-       status = lua\_pcall(L, n, m, h);  /\* calls Lua \*/
+       status = lua_pcall(L, n, m, h);  /\* calls Lua \*/
        ...     /\* code 2 \*/
      }
-
+```
 Now we want to allow the Lua code being run by [`lua_pcall`](#lua_pcall) to yield. First, we can rewrite our function like here:
-
-     int k (lua\_State \*L, int status, lua\_KContext ctx) {
-       ...  /\* code 2 \*/
+```c
+     int k (lua_State *L, int status, lua_KContext ctx) {
+       ...  /* code 2 */
      }
      
-     int original\_function (lua\_State \*L) {
-       ...     /\* code 1 \*/
-       return k(L, lua\_pcall(L, n, m, h), ctx);
+     int original_function (lua_State \*L) {
+       ...     /* code 1 */
+       return k(L, lua_pcall(L, n, m, h), ctx);
      }
-
+```
 In the above code, the new function `k` is a _continuation function_ (with type [`lua_KFunction`](#lua_KFunction)), which should do all the work that the original function was doing after calling [`lua_pcall`](#lua_pcall). Now, we must inform Lua that it must call `k` if the Lua code being executed by [`lua_pcall`](#lua_pcall) gets interrupted in some way (errors or yielding), so we rewrite the code as here, replacing [`lua_pcall`](#lua_pcall) by [`lua_pcallk`](#lua_pcallk):
-
-     int original\_function (lua\_State \*L) {
-       ...     /\* code 1 \*/
-       return k(L, lua\_pcallk(L, n, m, h, ctx2, k), ctx1);
+```c
+     int original_function (lua_State *L) {
+       ...     /* code 1 */
+       return k(L, lua_pcallk(L, n, m, h, ctx2, k), ctx1);
      }
-
+```
 Note the external, explicit call to the continuation: Lua will call the continuation only if needed, that is, in case of errors or resuming after a yield. If the called function returns normally without ever yielding, [`lua_pcallk`](#lua_pcallk) (and [`lua_callk`](#lua_callk)) will also return normally. (Of course, instead of calling the continuation in that case, you can do the equivalent work directly inside the original function.)
 
 Besides the Lua state, the continuation function has two other parameters: the final status of the call plus the context value (`ctx`) that was passed originally to [`lua_pcallk`](#lua_pcallk). (Lua does not use this context value; it only passes this value from the original function to the continuation function.) For [`lua_pcallk`](#lua_pcallk), the status is the same value that would be returned by [`lua_pcallk`](#lua_pcallk), except that it is [`LUA_YIELD`](#pdf-LUA_YIELD) when being executed after a yield (instead of [`LUA_OK`](#pdf-LUA_OK)). For [`lua_yieldk`](#lua_yieldk) and [`lua_callk`](#lua_callk), the status is always [`LUA_YIELD`](#pdf-LUA_YIELD) when Lua calls the continuation. (For these two functions, Lua will not call the continuation in case of errors, because they do not handle errors.) Similarly, when using [`lua_callk`](#lua_callk), you should call the continuation function with [`LUA_OK`](#pdf-LUA_OK) as the status. (For [`lua_yieldk`](#lua_yieldk), there is not much point in calling directly the continuation function, because [`lua_yieldk`](#lua_yieldk) usually does not return.)
@@ -1974,10 +1974,10 @@ Returns 1 if the two values in indices `index1` and `index2` are primitively equ
 
 ### `lua_rawget`
 
-\[-1, +1, –\]
 
-int lua\_rawget (lua\_State \*L, int index);
-
+```c
+int lua_rawget (lua_State *L, int index);
+```
 Similar to [`lua_gettable`](#lua_gettable), but does a raw access (i.e., without metamethods).
 
 * * *
