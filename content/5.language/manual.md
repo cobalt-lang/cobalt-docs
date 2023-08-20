@@ -1055,10 +1055,10 @@ The first field, `o`, is how many elements the function pops from the stack. The
 
 ### `lua_absindex`
 
-\[-0, +0, –\]
+```c
 
 int lua\_absindex (lua\_State \*L, int idx);
-
+```
 Converts the acceptable index `idx` into an equivalent absolute index (that is, one that does not depend on the stack top).
 
 * * *
@@ -1128,10 +1128,10 @@ The value of `op` must be one of the following constants:
 
 ### `lua_atpanic`
 
-\[-0, +0, –\]
+```c
 
 lua\_CFunction lua\_atpanic (lua\_State \*L, lua\_CFunction panicf);
-
+```
 Sets a new panic function and returns the old one (see [§4.6](#4.6)).
 
 * * *
@@ -2832,10 +2832,10 @@ During its normal operation, a string buffer uses a variable number of stack slo
 
 ### `luaL_buffinit`
 
-\[-0, +0, –\]
+```c
 
-void luaL\_buffinit (lua\_State \*L, luaL\_Buffer \*B);
-
+void luaL_buffinit (lua_State *L, luaL_Buffer *B);
+```
 Initializes a buffer `B`. This function does not allocate any space; the buffer must be declared as a variable (see [`luaL_Buffer`](#luaL_Buffer)).
 
 * * *
@@ -3198,10 +3198,10 @@ In both cases pushes onto the stack the final value associated with `tname` in t
 
 ### `luaL_newstate`
 
-\[-0, +0, –\]
+```c
 
-lua\_State \*luaL\_newstate (void);
-
+lua_State *luaL_newstate (void);
+```
 Creates a new Lua state. It calls [`lua_newstate`](#lua_newstate) with an allocator based on the standard C `realloc` function and then sets a panic function (see [§4.6](#4.6)) that prints an error message to the standard error output in case of fatal errors.
 
 Returns the new state, or `NULL` if there is a memory allocation error.
@@ -3377,10 +3377,10 @@ When `nup` is not zero, all functions are created sharing `nup` upvalues, which 
 
 ### `luaL_setmetatable`
 
-\[-0, +0, –\]
+```c
 
-void luaL\_setmetatable (lua\_State \*L, const char \*tname);
-
+void luaL_setmetatable (lua_State *L, const char *tname);
+```
 Sets the metatable of the object at the top of the stack as the metatable associated with name `tname` in the registry (see [`luaL_newmetatable`](#luaL_newmetatable)).
 
 * * *
@@ -3435,20 +3435,20 @@ Creates and pushes a traceback of the stack `L1`. If `msg` is not `NULL` it is a
 
 ### `luaL_typename`
 
-\[-0, +0, –\]
+```c
 
-const char \*luaL\_typename (lua\_State \*L, int index);
-
+const char *luaL_typename (lua_State *L, int index);
+```
 Returns the name of the type of the value at the given index.
 
 * * *
 
 ### `luaL_unref`
 
-\[-0, +0, –\]
+```c
 
-void luaL\_unref (lua\_State \*L, int t, int ref);
-
+void luaL_unref (lua_State *L, int t, int ref);
+```
 Releases reference `ref` from the table at index `t` (see [`luaL_ref`](#luaL_ref)). The entry is removed from the table, so that the referred object can be collected. The reference `ref` is also freed to be used again.
 
 If `ref` is [`LUA_NOREF`](#pdf-LUA_NOREF) or [`LUA_REFnull`](#pdf-LUA_REFnull), [`luaL_unref`](#luaL_unref) does nothing.
