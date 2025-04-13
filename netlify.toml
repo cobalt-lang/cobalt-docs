@@ -1,0 +1,11 @@
+[build.environment]
+    NODE_VERSION = "22"
+
+[build]
+    publish = "docs/.vitepress/dist"
+    command = "npm run build"
+
+[[redirects]]
+    from = "/*"
+    to = "/404.html"
+    status = 404
